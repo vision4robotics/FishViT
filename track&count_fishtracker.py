@@ -24,8 +24,8 @@ def check_files_for_dash(directory):
 
 
 if __name__ == '__main__':
-    folder_path = 'folder_path'  # Directory containing video files
-    output_folder_path = 'output_folder_path'  # Directory to save the txt files
+    folder_path = './folder_path'  # Directory containing video files
+    output_folder_path = './output_folder_path'  # Directory to save the txt files
     os.makedirs(output_folder_path, exist_ok=True)  # Create the output directory if it doesn't exist
 
     video_files = []
@@ -43,6 +43,10 @@ if __name__ == '__main__':
     # Process each video file
     for video_file in video_files:
         model = RTDETR(r'model path')  # Load the model
+
+        if hasattr(model, 'predictor') and hasattr(model.predictor, 'trackers'):
+            model.predictor.trackers = {}
+
         line_counter = LineZone(start=Point(800, 0), end=Point(800, 1080))  # Define line for crossing detection
         # Visualization setup
         line_annotator = LineZoneAnnotator(thickness=2, text_thickness=2, text_scale=2, color=Color(r=224, g=57, b=151))
@@ -58,12 +62,11 @@ if __name__ == '__main__':
         txt_file_path = os.path.join(output_folder_path, os.path.splitext(os.path.basename(video_file))[0] + '.txt')
         output_video_path = os.path.join(output_folder_path,
                                          os.path.splitext(os.path.basename(video_file))[0] + '_output.mp4')
-        # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        # out = cv2.VideoWriter(output_video_path, fourcc, fps, frame_size)
+
         m_bias = 0
         fish_count_frame = {}
         int_count = 0
-        for result in model.track(source=video_file, conf=0.25, tracker='bytetrack.yaml', project='runs/track',
+        for result in model.track(source=video_file, conf=0.25, tracker='fishtracker.yaml', project='runs/track',
                                   name='fishvit', save=False):
             frame = result.orig_img  # Get original image
             detections = Detections.from_yolov8(result)  # Parse detection results
@@ -94,11 +97,8 @@ if __name__ == '__main__':
 
             frame_count += 1
             video_fish_frame[video_file] = fish_count_frame
-            # out.write(frame)
 
-        cv2.destroyAllWindows()
         cap.release()
-        # out.release()  # Release the video writer
 
         # Display frame
         fish_count[video_file] = {'in_count': line_counter.in_count + bias, 'out_count': line_counter.out_count}

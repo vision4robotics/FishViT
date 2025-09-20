@@ -9,32 +9,10 @@ from ultralytics.utils.checks import check_yaml
 
 from .bot_sort import BOTSORT
 from .byte_tracker import BYTETracker
+from .fish_tracker import FishTracker
 
-# from trackers.byte_tracker import ByteTracker
-# from trackers.sort_tracker import SortTracker
-# from trackers.botsort_tracker import BotTracker
-# from trackers.c_biou_tracker import C_BIoUTracker
-# from trackers.ocsort_tracker import OCSortTracker
-# from trackers.deepsort_tracker import DeepSortTracker
-# from trackers.strongsort_tracker import StrongSortTracker
-# from trackers.sparse_tracker import SparseTracker
-# from trackers.ucmc_tracker import UCMCTracker
-# from trackers.hybridsort_tracker import HybridSortTracker
-
-from ultralytics.trackers.trackers.sort_tracker import SortTracker
-from ultralytics.trackers.trackers.botsort_tracker import BotTracker
-from ultralytics.trackers.trackers.c_biou_tracker import C_BIoUTracker
-from ultralytics.trackers.trackers.ocsort_tracker import OCSortTracker
-from ultralytics.trackers.trackers.deepsort_tracker import DeepSortTracker
-from ultralytics.trackers.trackers.strongsort_tracker import StrongSortTracker
-from ultralytics.trackers.trackers.sparse_tracker import SparseTracker
-from ultralytics.trackers.trackers.ucmc_tracker import UCMCTracker
-from ultralytics.trackers.trackers.hybridsort_tracker import HybridSortTracker
-
-TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT, 'sort': SortTracker, 'botsort': BotTracker,
-               'c_bioutrack': C_BIoUTracker, 'ocsort': OCSortTracker, 'deepsort': DeepSortTracker,
-               'strongsort': StrongSortTracker, 'sparsetrack': SparseTracker, 'ucmctrack': UCMCTracker,
-               'hybridsort': HybridSortTracker}
+TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT,
+               'fishtracker': FishTracker}
 
 # TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 
@@ -53,8 +31,7 @@ def on_predict_start(predictor, persist=False):
         return
     tracker = check_yaml(predictor.args.tracker)
     cfg = IterableSimpleNamespace(**yaml_load(tracker))
-    assert cfg.tracker_type in ['bytetrack', 'botsort', 'sort', 'botsort', 'c_bioutrack', 'ocsort', 'deepsort',
-                                'strongsort', 'sparsetrack', 'ucmctrack', 'hybridsort'], \
+    assert cfg.tracker_type in ['bytetrack', 'botsort', 'sort', 'hybridsort'], \
         f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
     trackers = []
     for _ in range(predictor.dataset.bs):

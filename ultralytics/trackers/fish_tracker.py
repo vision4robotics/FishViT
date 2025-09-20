@@ -77,6 +77,22 @@ class STrack(BaseTrack):
             stracks[i].mean = mean
             stracks[i].covariance = cov
 
+    def generate_predicted_box(self):
+        """Generate the predicted bounding box based on the current state estimate."""
+        if self.mean is None:
+            tlwh = self._tlwh.copy()
+        # Use the existing logic from tlwh property to get the predicted box
+        ret = self.mean[:4].copy()
+        ret[2] *= ret[3]
+        ret[:2] -= ret[2:] / 2
+        tlwh = ret
+
+        # 将 tlwh 格式转换为 tlbr 格式
+        tlbr = self.tlwh_to_tlbr(tlwh)
+        # self.tlbr=tlbr
+        # self.tlwh=tlwh
+        # return tlbr, tlwh
+
     @staticmethod
     def multi_gmc(stracks, H=np.eye(2, 3)):
         """Update state tracks positions and covariances using a homography matrix."""
@@ -189,12 +205,23 @@ class STrack(BaseTrack):
         ret[2:] += ret[:2]
         return ret
 
+    def if_center(self, x_min=400, x_max=1200, y_min=224, y_max=672):
+        try:
+            x, y, w, h = self.tlwh
+            center_x = x + w / 2
+            center_y = y + h / 2
+            if x_min <= center_x <= x_max and y_min <= center_y <= y_max:
+                return True
+            return False
+        except (ValueError, TypeError):
+            return False
+
     def __repr__(self):
         """Return a string representation of the BYTETracker object with start and end frames and track ID."""
         return f'OT_{self.track_id}_({self.start_frame}-{self.end_frame})'
 
 
-class BYTETracker:
+class FishTracker:
     """
     BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
 
@@ -228,6 +255,8 @@ class BYTETracker:
         self.tracked_stracks = []  # type: list[STrack]
         self.lost_stracks = []  # type: list[STrack]
         self.removed_stracks = []  # type: list[STrack]
+        self.tracked_count_bias = set()
+        self.bias = 0
 
         self.frame_id = 0
         self.args = args
@@ -237,11 +266,13 @@ class BYTETracker:
 
     def update(self, results, img=None):
         """Updates object tracker with new detections and returns tracked object bounding boxes."""
+        # print("results",results)
         self.frame_id += 1
         activated_stracks = []
         refind_stracks = []
         lost_stracks = []
         removed_stracks = []
+
 
         scores = results.conf
         bboxes = results.xyxy
@@ -295,12 +326,19 @@ class BYTETracker:
         detections_second = self.init_track(dets_second, scores_second, cls_second, img)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         # TODO
-        dists = matching.iou_distance(r_tracked_stracks, detections_second)
+        dists = matching.iou_distance(r_tracked_stracks, detections_second)  # 源码
+        # dists = matching.diou_distance(r_tracked_stracks, detections_second)     #修改
         matches, u_track, u_detection_second = matching.linear_assignment(dists, thresh=0.5)
         for itracked, idet in matches:
             track = r_tracked_stracks[itracked]
             det = detections_second[idet]
             if track.state == TrackState.Tracked:
+                # if track.tlbr[0] > 400:
+                #     track.re_activate(det, self.frame_id, new_id=False)
+                #     refind_stracks.append(track)
+                # else:
+                #     track.update(det, self.frame_id)
+                #     activated_stracks.append(track)
                 track.update(det, self.frame_id)
                 activated_stracks.append(track)
             else:
@@ -314,8 +352,11 @@ class BYTETracker:
                 lost_stracks.append(track)
         # Deal with unconfirmed tracks, usually tracks with only one beginning frame
         detections = [detections[i] for i in u_detection]
-        dists = self.get_dists(unconfirmed, detections)
-        matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=0.7)
+        dists = self.get_dists(unconfirmed, detections)  # 源码
+        # dists = self.c_get_dists(unconfirmed, detections)#修改
+        # dists = matching.diou_distance(unconfirmed, detections)#修改
+        matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=0.7)  # 源码
+        # matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=0.7)#修改
         for itracked, idet in matches:
             unconfirmed[itracked].update(detections[idet], self.frame_id)
             activated_stracks.append(unconfirmed[itracked])
@@ -346,10 +387,26 @@ class BYTETracker:
         self.removed_stracks.extend(removed_stracks)
         if len(self.removed_stracks) > 1000:
             self.removed_stracks = self.removed_stracks[-999:]  # clip remove stracks to 1000 maximum
+        # setp 6: filtrate tracked_stracks
+        my_set=self.tracked_count_bias.copy()
+        for bias_id in my_set:
+            for t in self.tracked_stracks:
+                if t.track_id == bias_id:
+                    self.tracked_count_bias.remove(bias_id)
+                    break
+        for track in self.lost_stracks:
+            if self.is_valid_track(track):
+                self.tracked_count_bias.add(track.track_id)
+                self.bias = len(self.tracked_count_bias)
+
         return np.asarray(
             [x.tlbr.tolist() + [x.track_id, x.score, x.cls, x.idx] for x in self.tracked_stracks if x.is_activated],
-            dtype=np.float32)
+            dtype=np.float32), self.bias
 
+    #he
+    def is_valid_track(self, track):
+        return (track.end_frame - track.start_frame >= 90 and
+                500 < track.tlbr[0] < 800)
     def get_kalmanfilter(self):
         """Returns a Kalman filter object for tracking bounding boxes."""
         return KalmanFilterXYAH()
@@ -366,9 +423,20 @@ class BYTETracker:
         dists = matching.fuse_score(dists, detections)
         return dists
 
+    def c_get_dists(self, tracks, detections):
+        """Calculates the distance between tracks and detections using IOU and fuses scores."""
+        dists = matching.diou_distance(tracks, detections)
+        # TODO: mot20
+        # if not self.args.mot20:
+        return 1 - dists
+
     def multi_predict(self, tracks):
         """Returns the predicted tracks using the YOLOv8 network."""
         STrack.multi_predict(tracks)
+
+    def multi_predict_4bboxes(self, tracks):
+        """Returns the predicted tracks using the YOLOv8 network."""
+        STrack.multi_predict_4bboxes(tracks)
 
     def reset_id(self):
         """Resets the ID counter of STrack."""
