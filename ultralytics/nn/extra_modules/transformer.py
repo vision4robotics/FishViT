@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+<<<<<<< HEAD
 from ..modules.conv import Conv, autopad
 from ..modules.transformer import TransformerEncoderLayer
 from .attention import DAttention, FocusedLinearAttention, HiLo
@@ -366,6 +367,16 @@ class TransformerEncoderLayer_HiLo(nn.Module):
         return self.forward_post(src, src_mask, src_key_padding_mask, pos)
 
 ######################################## TransformerEncoderLayer_DAttention end ########################################
+=======
+from timm.models.layers import DropPath, to_2tuple, trunc_normal_
+from torch import einsum
+from ..modules.conv import Conv, autopad
+from ..modules.transformer import TransformerEncoderLayer
+# from .attention import DAttention, FocusedLinearAttention, HiLo
+
+__all__ = ['STattention']
+
+>>>>>>> upstream/main
 
 ######################################## STattention start ########################################
 
@@ -455,4 +466,8 @@ class STattention(nn.Module):
         return x
 
 
+<<<<<<< HEAD
 ######################################## STattention end ########################################
+=======
+######################################## STattention end ########################################
+>>>>>>> upstream/main

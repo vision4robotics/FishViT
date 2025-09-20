@@ -73,6 +73,7 @@ class EMASlideLoss:
         else:  # 'none'
             return loss
 
+<<<<<<< HEAD
 class SlideVarifocalLoss(nn.Module):
     def __init__(self):
         super(SlideVarifocalLoss, self).__init__()
@@ -132,6 +133,8 @@ class EMASlideVarifocalLoss:
                     weight)
         return loss
 
+=======
+>>>>>>> upstream/main
 class VarifocalLoss(nn.Module):
     """
     Varifocal loss by Zhang et al.

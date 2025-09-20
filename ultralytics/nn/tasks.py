@@ -29,8 +29,11 @@ from ultralytics.nn.backbone.repvit import *
 from ultralytics.nn.backbone.CSwimTramsformer import *
 from ultralytics.nn.backbone.UniRepLKNet import *
 from ultralytics.nn.backbone.TransNext import *
+<<<<<<< HEAD
 from ultralytics.nn.backbone.rmt import *
 from ultralytics.nn.backbone.pkinet import *
+=======
+>>>>>>> upstream/main
 
 try:
     import thop
@@ -438,7 +441,11 @@ class RTDETRDetectionModel(DetectionModel):
         """Initialize the loss criterion for the RTDETRDetectionModel."""
         from ultralytics.models.utils.loss import RTDETRDetectionLoss
 
+<<<<<<< HEAD
         return RTDETRDetectionLoss(nc=self.nc, use_vfl=True, use_sl=False, use_emasl=False, use_svfl=False, use_emasvfl=False)
+=======
+        return RTDETRDetectionLoss(nc=self.nc, use_vfl=True, use_sl=False, use_emasl=False)
+>>>>>>> upstream/main
 
     def loss(self, batch, preds=None):
         """
@@ -742,6 +749,7 @@ def parse_model(d, ch, verbose=True, warehouse_manager=None):  # model_dict, inp
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in (Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,
                  BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.Conv2d, nn.ConvTranspose2d, DWConvTranspose2d, C3x, RepC3,
+<<<<<<< HEAD
                  ConvNormLayer, DWRC3, C3_DWR, C2f_DWR, C3_DCNv2_Dynamic, C2f_DCNv2_Dynamic, BasicBlock_DCNv2_Dynamic, BottleNeck_DCNv2_Dynamic,
                  C3_DCNv2, C2f_DCNv2, BasicBlock_DCNv2, BottleNeck_DCNv2, C3_DCNv3, C2f_DCNv3, BasicBlock_DCNv3, BottleNeck_DCNv3,
                  C3_iRMB, C2f_iRMB, C3_iRMB_Cascaded, C2f_iRMB_Cascaded, C3_Attention, C2f_Attention, C3_Ortho, C2f_Ortho,
@@ -757,11 +765,15 @@ def parse_model(d, ch, verbose=True, warehouse_manager=None):  # model_dict, inp
                  C3_VSS, C2f_VSS, C3_LVMB, C2f_LVMB, RepNCSPELAN4, DBBNCSPELAN4, OREPANCSPELAN4, DRBNCSPELAN4, Conv3XCNCSPELAN4, ADown,
                  C3_ContextGuided, C2f_ContextGuided, CSP_PAC, DGCST, DGCST2, RetBlockC3, C3_RetBlock, C2f_RetBlock, RepNCSPELAN4_CAA,
                  C3_PKIModule, C2f_PKIModule, C3_FADC, C2f_FADC, C3_PPA, C2f_PPA):
+=======
+                 ConvNormLayer):
+>>>>>>> upstream/main
             if args[0] == 'head_channel':
                 args[0] = d[args[0]]
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
+<<<<<<< HEAD
 
             args = [c1, c2, *args[1:]]
             if m in (DySnakeConv,):
@@ -790,6 +802,15 @@ def parse_model(d, ch, verbose=True, warehouse_manager=None):  # model_dict, inp
             if m in (HGBlock, Ghost_HGBlock, Rep_HGBlock, HGBlock_Attention):
                 args.insert(4, n)  # number of repeats
                 n = 1
+=======
+            
+            if m in (BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, C3x, RepC3):
+                args.insert(2, n)  # number of repeats
+                n = 1
+        elif m in (AIFI, STattention):
+            args = [ch[f], *args]
+
+>>>>>>> upstream/main
         elif m is nn.BatchNorm2d:
             args = [ch[f]]
         elif m is Concat:
@@ -798,10 +819,14 @@ def parse_model(d, ch, verbose=True, warehouse_manager=None):  # model_dict, inp
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
+<<<<<<< HEAD
         elif m is Fusion:
             args[0] = d[args[0]]
             c1, c2 = [ch[x] for x in f], (sum([ch[x] for x in f]) if args[0] == 'concat' else ch[f[0]])
             args = [c1, args[0]]
+=======
+
+>>>>>>> upstream/main
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif isinstance(m, str):
@@ -822,6 +847,7 @@ def parse_model(d, ch, verbose=True, warehouse_manager=None):  # model_dict, inp
                    repvit_m0_9, repvit_m1_0, repvit_m1_1, repvit_m1_5, repvit_m2_3,
                    CSWin_tiny, CSWin_small, CSWin_base, CSWin_large,
                    unireplknet_a, unireplknet_f, unireplknet_p, unireplknet_n, unireplknet_t, unireplknet_s, unireplknet_b, unireplknet_l, unireplknet_xl,
+<<<<<<< HEAD
                    transnext_micro, transnext_tiny, transnext_small, transnext_base,
                    RMT_T, RMT_S, RMT_B, RMT_L,
                    PKINET_T, PKINET_S, PKINET_B,
@@ -900,6 +926,17 @@ def parse_model(d, ch, verbose=True, warehouse_manager=None):  # model_dict, inp
         elif m is DASI:
             c1 = [ch[x] for x in f]
             args = [c1, c2]
+=======
+                   transnext_micro, transnext_tiny, transnext_small, transnext_base
+                   }:
+
+            m = m(*args)
+            c2 = m.channel
+
+            c2 = ch[f]
+            args = [c2, *args]
+
+>>>>>>> upstream/main
         elif m is Blocks:
             block_type = globals()[args[1]]
             c1, c2 = ch[f], args[0] * block_type.expansion

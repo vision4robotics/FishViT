@@ -5,7 +5,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import dill as pickle
 
+<<<<<<< HEAD
 from ultralytics.utils.loss import FocalLoss, VarifocalLoss, SlideLoss, EMASlideLoss, SlideVarifocalLoss, EMASlideVarifocalLoss
+=======
+from ultralytics.utils.loss import FocalLoss, VarifocalLoss, SlideLoss, EMASlideLoss
+>>>>>>> upstream/main
 from ultralytics.utils.metrics import bbox_iou, bbox_inner_iou, bbox_focaler_iou, bbox_mpdiou, bbox_inner_mpdiou, bbox_focaler_mpdiou, wasserstein_loss, WiseIouLoss
 
 from .ops import HungarianMatcher
@@ -39,8 +43,11 @@ class DETRLoss(nn.Module):
                  use_vfl=False,
                  use_sl=False, # SlideLoss
                  use_emasl=False, # EMASlideLoss
+<<<<<<< HEAD
                  use_svfl=False, # SlideVarifocalLoss
                  use_emasvfl=False, # EMASlideVarifocalLoss
+=======
+>>>>>>> upstream/main
                  use_uni_match=False,
                  uni_match_ind=0):
         """
@@ -66,8 +73,11 @@ class DETRLoss(nn.Module):
         self.vfl = VarifocalLoss() if use_vfl else None
         self.sl = SlideLoss(nn.BCEWithLogitsLoss(reduction='none')) if use_sl else None
         self.emasl = EMASlideLoss(nn.BCEWithLogitsLoss(reduction='none')) if use_emasl else None
+<<<<<<< HEAD
         self.svfl = SlideVarifocalLoss() if use_svfl else None
         self.emasvfl = EMASlideVarifocalLoss() if use_emasvfl else None
+=======
+>>>>>>> upstream/main
 
         self.use_uni_match = use_uni_match
         self.uni_match_ind = uni_match_ind
@@ -102,6 +112,7 @@ class DETRLoss(nn.Module):
                 loss_cls = self.sl(pred_scores, gt_scores, auto_iou).mean(1).sum()
             else:
                 loss_cls = self.emasl(pred_scores, gt_scores, auto_iou).mean(1).sum()
+<<<<<<< HEAD
         elif self.svfl or self.emasvfl:
             if num_gts > 0:
                 auto_iou = (gt_scores[gt_scores > 0]).mean()
@@ -115,6 +126,8 @@ class DETRLoss(nn.Module):
             else:
                 loss_cls = self.fl(pred_scores, one_hot.float())
             loss_cls /= max(num_gts, 1) / nq
+=======
+>>>>>>> upstream/main
         elif self.fl:
             if num_gts and self.vfl:
                 loss_cls = self.vfl(pred_scores, gt_scores, one_hot)
