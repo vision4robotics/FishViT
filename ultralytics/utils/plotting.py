@@ -53,6 +53,10 @@ class Colors:
         """Converts hex color codes to RGB values (i.e. default PIL order)."""
         return tuple(int(h[1 + i:1 + i + 2], 16) for i in (0, 2, 4))
 
+<<<<<<< HEAD
+
+colors = Colors()  # create instance for 'from utils.plots import colors'
+=======
 class Color:
     def __init__(self):
         self.red = (255, 0, 0) # 深红色
@@ -71,6 +75,7 @@ class Color:
 
 colors = Colors()  # create instance for 'from utils.plots import colors'
 color = Color()
+>>>>>>> upstream/main
 
 
 class Annotator:
@@ -93,7 +98,10 @@ class Annotator:
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         self.pil = pil or non_ascii
         self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
+<<<<<<< HEAD
+=======
         # self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 10)  # line width
+>>>>>>> upstream/main
         if self.pil:  # use PIL
             self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
             self.draw = ImageDraw.Draw(self.im)
@@ -234,7 +242,10 @@ class Annotator:
             self.fromarray(self.im)
 
     def rectangle(self, xy, fill=None, outline=None, width=1):
+<<<<<<< HEAD
+=======
     # def rectangle(self, xy, fill=None, outline=None, width=20):
+>>>>>>> upstream/main
         """Add rectangle to image (PIL-only)."""
         self.draw.rectangle(xy, fill, outline, width)
 

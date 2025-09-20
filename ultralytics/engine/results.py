@@ -14,7 +14,11 @@ import torch
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, SimpleClass, ops
+<<<<<<< HEAD
+from ultralytics.utils.plotting import Annotator, colors, save_one_box
+=======
 from ultralytics.utils.plotting import Annotator, colors, save_one_box, color
+>>>>>>> upstream/main
 from ultralytics.utils.torch_utils import smart_inference_mode
 
 
@@ -237,17 +241,29 @@ class Results(SimpleClass):
                 im_gpu = torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device).permute(
                     2, 0, 1).flip(0).contiguous() / 255
             idx = pred_boxes.cls if pred_boxes else range(len(pred_masks))
+<<<<<<< HEAD
+            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
+=======
             # annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
             annotator.masks(pred_masks.data, colors=[color(1, True)], im_gpu=im_gpu)
+>>>>>>> upstream/main
 
         # Plot Detect results
         if pred_boxes and show_boxes:
             for d in reversed(pred_boxes):
                 c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
+<<<<<<< HEAD
+                # c, conf = int(d.cls), float(d.conf) if conf else None
+                # name = ('' if id is None else f'id:{id} ') + names[c]
+                name = names[c]
+                label = (f'{name} {conf:.2f}' if conf else name) if labels else None
+                annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
+=======
                 name = ('' if id is None else f'id:{id} ') + names[c]
                 label = (f'{name} {conf:.2f}' if conf else name) if labels else None
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
                 # annotator.box_label(d.xyxy.squeeze(), label, color=color(0, True))
+>>>>>>> upstream/main
 
         # Plot Classify results
         if pred_probs is not None and show_probs:

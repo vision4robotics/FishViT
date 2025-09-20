@@ -110,7 +110,12 @@ class BaseValidator:
         if self.training:
             self.device = trainer.device
             self.data = trainer.data
+<<<<<<< HEAD
+            # self.args.half = self.device.type != 'cpu'  # force FP16 val during training
+            self.args.half = False
+=======
             self.args.half = self.device.type != 'cpu'  # force FP16 val during training
+>>>>>>> upstream/main
             model = trainer.ema.ema or trainer.model
             model = model.half() if self.args.half else model.float()
             # self.model = model

@@ -1,0 +1,62 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# RT-DETR-l object detection model with P3-P5 outputs. For details see https://docs.ultralytics.com/models/rtdetr
+
+# Parameters
+nc: 2  # number of classes
+scales: # model compound scaling constants, i.e. 'model=yolov8n-cls.yaml' will call yolov8-cls.yaml with scale 'n'
+  # [depth, width, max_channels]
+  l: [1.00, 1.00, 1024]
+
+# From BiliBili 魔鬼面具
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, ConvNormLayer, [32, 3, 2, None, False, 'relu']] # 0-P1/2
+  - [-1, 1, ConvNormLayer, [32, 3, 1, None, False, 'relu']] # 1
+  - [-1, 1, ConvNormLayer, [64, 3, 1, None, False, 'relu']] # 2
+  - [-1, 1, nn.MaxPool2d, [3, 2, 1]] # 3-P2/4
+  
+  # [ch_out, block_type, block_nums, stage_num, act, variant]
+  - [-1, 1, Blocks, [64, BasicBlock, 2, 2, 'relu']] # 4
+  - [-1, 1, Blocks, [128, BasicBlock, 2, 3, 'relu']] # 5-P3/8
+  - [-1, 1, Blocks, [256, BasicBlock, 2, 4, 'relu']] # 6-P4/16
+  - [-1, 1, Blocks, [512, BasicBlock, 2, 5, 'relu']] # 7-P5/32
+
+head:
+  - [ 5, 1, Conv, [ 128, 1, 1, None, 1, 1, False ] ]  # 8 input_proj.0
+  - [ -1, 1, STattention, [ 8, 128 ] ] # 9
+#  - [ -1, 1, Conv, [ 256, 1, 1 ] ] # 10
+
+  - [ 6, 1, Conv, [ 256, 1, 1, None, 1, 1, False ] ]  # 10 input_proj.1
+  - [ -1, 1, STattention, [ 8, 256 ] ] # 11
+#  - [ -1, 1, Conv, [ 256, 1, 1 ] ] # 13
+
+  - [7, 1, Conv, [512, 1, 1, None, 1, 1, False]]  # 12 input_proj.2
+  - [-1, 1, STattention, [8, 512]] # 13
+#  - [-1, 1, Conv, [256, 1, 1]] # 16
+
+#  - [10, 1, AttentionDownsample, []]  # 17, downsample_convs.0
+#  - [10, 1, Conv, [256, 3, 2]] # downsample
+#  - [[-1, 13], 1, Concat, [1]]  # 18
+#  - [ -1, 1, Conv, [ 256, 1, 1 ] ] # 19
+#  - [-1, 1, AttentionDownsample, []]  # 20, downsample_convs.1
+#  - [-1, 1, Conv, [256, 3, 2]] # downsample
+#  - [[-1, 16], 1, Concat, [1]]  # 21
+#  - [-1, 1, Conv, [256, 1, 1]]  # 22
+
+#  - [-1, 1, AttentionUpsample, []] # 23
+#  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+#  - [[-1, 19], 1, Add, []]  # 24
+
+#  - [-1, 1, AttentionUpsample, []] # 25
+#  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+#  - [[-1, 10], 1, Add, []]  # 26
+
+  - [[5, 9], 1, Concat, [1]] #14
+  - [-1, 1, Conv, [256, 1, 1]] #15
+  - [[6, 11], 1, Concat, [1]] #16
+  - [-1, 1, Conv, [256, 1, 1]] #17
+  - [[7, 13], 1, Concat, [1]] #18
+  - [-1, 1, Conv, [256, 1, 1]] #19
+
+  - [[15, 17, 19], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 3]]  # Detect(P3, P4, P5)
+

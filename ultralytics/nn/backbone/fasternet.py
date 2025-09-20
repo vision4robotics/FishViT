@@ -308,7 +308,11 @@ def fasternet_t2(weights=None, cfg='ultralytics/nn/backbone/faster_cfg/fasternet
         model.load_state_dict(update_weight(model.state_dict(), pretrain_weight))
     return model
 
+<<<<<<< HEAD
+def fasternet_s(weights=None, cfg='ultralytics/nn/backbone/faster_cfg/fasternet_s.yaml'):
+=======
 def fasternet_s(weights=None, cfg='ultralytics/nn/backbone/faster_cfgg/fasternet_s.yaml'):
+>>>>>>> upstream/main
     with open(cfg) as f:
         cfg = yaml.load(f, Loader=yaml.SafeLoader)
     model = FasterNet(**cfg)

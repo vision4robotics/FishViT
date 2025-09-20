@@ -106,6 +106,10 @@ class BasePredictor:
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
+<<<<<<< HEAD
+        self.count_bias = 0  # count bias for line crossing detection
+=======
+>>>>>>> upstream/main
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im):

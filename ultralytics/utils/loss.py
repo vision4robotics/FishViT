@@ -73,6 +73,68 @@ class EMASlideLoss:
         else:  # 'none'
             return loss
 
+<<<<<<< HEAD
+class SlideVarifocalLoss(nn.Module):
+    def __init__(self):
+        super(SlideVarifocalLoss, self).__init__()
+
+    def forward(self, pred, true, one_hot, auto_iou=0.5):
+        loss = self.loss_fcn(pred, true, one_hot)
+        if auto_iou < 0.2:
+            auto_iou = 0.2
+        b1 = true <= auto_iou - 0.1
+        a1 = 1.0
+        b2 = (true > (auto_iou - 0.1)) & (true < auto_iou)
+        a2 = math.exp(1.0 - auto_iou)
+        b3 = true >= auto_iou
+        a3 = torch.exp(-(true - 1.0))
+        modulating_weight = a1 * b1 + a2 * b2 + a3 * b3
+        loss *= modulating_weight
+        return loss.mean(1).sum()
+    
+    def loss_fcn(self, pred_score, gt_score, label, alpha=0.75, gamma=2.0):
+        weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
+        with torch.cuda.amp.autocast(enabled=False):
+            loss = (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction='none') *
+                    weight)
+        return loss
+
+class EMASlideVarifocalLoss:
+    def __init__(self, decay=0.999, tau=2000):
+        super(EMASlideVarifocalLoss, self).__init__()
+        self.decay = lambda x: decay * (1 - math.exp(-x / tau))
+        self.is_train = True
+        self.updates = 0
+        self.iou_mean = 1.0
+    
+    def __call__(self, pred, true, one_hot, auto_iou=0.5):
+        if self.is_train and auto_iou != -1:
+            self.updates += 1
+            d = self.decay(self.updates)
+            self.iou_mean = d * self.iou_mean + (1 - d) * float(auto_iou.detach())
+        auto_iou = self.iou_mean
+        loss = self.loss_fcn(pred, true, one_hot)
+        if auto_iou < 0.2:
+            auto_iou = 0.2
+        b1 = true <= auto_iou - 0.1
+        a1 = 1.0
+        b2 = (true > (auto_iou - 0.1)) & (true < auto_iou)
+        a2 = math.exp(1.0 - auto_iou)
+        b3 = true >= auto_iou
+        a3 = torch.exp(-(true - 1.0))
+        modulating_weight = a1 * b1 + a2 * b2 + a3 * b3
+        loss *= modulating_weight
+        return loss.mean(1).sum()
+    
+    def loss_fcn(self, pred_score, gt_score, label, alpha=0.75, gamma=2.0):
+        weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
+        with torch.cuda.amp.autocast(enabled=False):
+            loss = (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction='none') *
+                    weight)
+        return loss
+
+=======
+>>>>>>> upstream/main
 class VarifocalLoss(nn.Module):
     """
     Varifocal loss by Zhang et al.

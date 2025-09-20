@@ -8,7 +8,11 @@ import torch
 import torch.nn as nn
 
 __all__ = ('Conv', 'Conv2', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',
+<<<<<<< HEAD
+           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv', 'Add_TII')
+=======
            'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv')
+>>>>>>> upstream/main
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
@@ -313,3 +317,17 @@ class Concat(nn.Module):
     def forward(self, x):
         """Forward pass for the YOLOv8 mask Proto module."""
         return torch.cat(x, self.d)
+<<<<<<< HEAD
+
+class Add_TII(nn.Module):
+    """Concatenate a list of tensors along dimension."""
+
+    def __init__(self):
+        """Concatenates a list of tensors along a specified dimension."""
+        super().__init__()
+
+    def forward(self, x):
+        """Forward pass for the YOLOv8 mask Proto module."""
+        return x[0] + x[1]
+=======
+>>>>>>> upstream/main
